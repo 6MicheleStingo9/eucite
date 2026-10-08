@@ -114,6 +114,11 @@ class LockEntry(BaseModel):
     last_modified: str | None = None
     """Cellar's own validators for the manifestation, as served: when Cellar last
     regenerated it, and a token for conditional requests."""
+    canonical_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    canonical_version: int | None = None
+    """Hash of the canonical form (ADR-0006) and the version of the rules that
+    produced it. Equal canonical hashes with different ``sha256`` mean the
+    payload changed only in presentation."""
 
     @property
     def key(self) -> SourceKey:
@@ -167,6 +172,8 @@ def lock_entry(
     retrieved_at: datetime,
     etag: str | None = None,
     last_modified: str | None = None,
+    canonical_sha256: str | None = None,
+    canonical_version: int | None = None,
 ) -> LockEntry:
     return LockEntry(
         celex=key.celex,
@@ -181,4 +188,6 @@ def lock_entry(
         retrieved_at=retrieved_at,
         etag=etag,
         last_modified=last_modified,
+        canonical_sha256=canonical_sha256,
+        canonical_version=canonical_version,
     )

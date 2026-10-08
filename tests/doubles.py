@@ -29,6 +29,61 @@ def formex_zip(members: dict[str, bytes] | None = None) -> bytes:
     return buffer.getvalue()
 
 
+SCHEMA = "http://formex.publications.europa.eu/schema/formex-06.02.1-20231031.xd"
+XSI = 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
+
+
+def formex_act(body: str, *, root: str = "ACT", schema: str = SCHEMA) -> str:
+    """A Formex act with a bibliographic header and ``body`` as its content."""
+    return (
+        f'<?xml version="1.0" encoding="UTF-8"?><{root} {XSI} '
+        f'xsi:noNamespaceSchemaLocation="{schema}">'
+        '<BIB.INSTANCE><DOCUMENT.REF FILE="x"><PAGE.FIRST>1</PAGE.FIRST></DOCUMENT.REF>'
+        f"</BIB.INSTANCE>{body}</{root}>"
+    )
+
+
+def formex_bundle(
+    main: str,
+    annexes: tuple[str, ...] = (),
+    *,
+    included: dict[str, str] | None = None,
+    extra: dict[str, bytes] | None = None,
+    prefix: str = "L_TEST",
+    reverse_members: bool = False,
+    date_time: tuple[int, int, int, int, int, int] = (2026, 8, 11, 17, 9, 50),
+    compression: int = zipfile.ZIP_DEFLATED,
+) -> bytes:
+    """A Formex bundle: descriptor, table of contents, main act, annexes, inclusions."""
+    names = [f"{prefix}.000101.fmx.xml"] + [
+        f"{prefix}.{124 + i:04d}01.fmx.xml" for i in range(len(annexes))
+    ]
+    pubs = [
+        f'<DOC.MAIN.PUB NO.SEQ="0001"><REF.PHYS FILE="{names[0]}" TYPE="DOC.XML"/></DOC.MAIN.PUB>'
+    ]
+    pubs += [
+        f'<DOC.SUB.PUB NO.SEQ="0001.{i:04d}" TYPE="ANNEX">'
+        f'<REF.PHYS FILE="{name}" TYPE="DOC.XML"/></DOC.SUB.PUB>'
+        for i, name in enumerate(names[1:], 1)
+    ]
+    members = {
+        f"{prefix}.doc.fmx.xml": f'<?xml version="1.0"?><DOC><FMX>{"".join(pubs)}</FMX></DOC>',
+        f"{prefix}.toc.fmx.xml": "<PUBLICATION><OJ>table of contents</OJ></PUBLICATION>",
+        names[0]: main,
+        **dict(zip(names[1:], annexes, strict=True)),
+        **(included or {}),
+    }
+    encoded = {name: text.encode() for name, text in members.items()} | (extra or {})
+    order = sorted(encoded, reverse=reverse_members)
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as bundle:
+        for name in order:
+            info = zipfile.ZipInfo(name, date_time=date_time)
+            info.compress_type = compression
+            bundle.writestr(info, encoded[name])
+    return buffer.getvalue()
+
+
 def xhtml(body: str = "") -> bytes:
     return (
         '<?xml version="1.0" encoding="UTF-8"?>'
@@ -38,10 +93,10 @@ def xhtml(body: str = "") -> bytes:
 
 def payload_for(key: SourceKey, revision: int = 0) -> bytes:
     """Distinct, valid content for each key, so that every source hashes differently."""
-    marker = f"{key}#{revision}".encode()
+    marker = f"{key}#{revision}"
     if key.manifestation is Manifestation.FORMEX:
-        return formex_zip({"X.doc.xml": b"<DOC/>", "X.0001.xml": b"<ACT>" + marker + b"</ACT>"})
-    return xhtml(marker.decode())
+        return formex_bundle(formex_act(f"<ENACTING.TERMS><P>{marker}</P></ENACTING.TERMS>"))
+    return xhtml(f"<p>{marker}</p>")
 
 
 MEDIA_TYPES = {

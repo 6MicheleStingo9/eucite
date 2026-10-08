@@ -11,9 +11,17 @@ from pathlib import Path
 import pytest
 
 from eucite.cache import ObjectStore, SourceLock
+from eucite.canonical import CANONICAL_VERSION
 from eucite.fetch import FetchReport, Outcome, fetch_sources
 from eucite.sources import Manifestation, SourceKey, all_sources
-from tests.doubles import FakeCellar, make_client, payload_for
+from tests.doubles import (
+    FakeCellar,
+    formex_act,
+    formex_bundle,
+    formex_zip,
+    make_client,
+    payload_for,
+)
 
 Snapshot = dict[str, tuple[int, int]]
 
@@ -131,3 +139,73 @@ def test_one_failure_does_not_stop_the_others(cellar: FakeCellar, tmp_path: Path
     assert failure.key == missing
     assert failure.error is not None and "404" in failure.error
     assert len(SourceLock.load(tmp_path / "sources.lock.json").entries) == 11
+
+
+# -- canonical form (ADR-0006) -------------------------------------------------------
+
+CONSOLIDATED = SourceKey("02024R1689-20260727", "ita", Manifestation.FORMEX)
+
+
+def test_every_entry_records_its_canonical_hash(served: FakeCellar, tmp_path: Path) -> None:
+    run(served, tmp_path)
+    for entry in SourceLock.load(tmp_path / "sources.lock.json").entries:
+        assert entry.canonical_sha256 is not None
+        assert entry.canonical_version == CANONICAL_VERSION
+
+
+def test_canonical_hashes_are_filled_in_without_network(served: FakeCellar, tmp_path: Path) -> None:
+    """A lock written before the canonical form existed is completed from the cache."""
+    run(served, tmp_path)
+    lock_path = tmp_path / "sources.lock.json"
+    old = SourceLock.load(lock_path)
+    stripped = SourceLock(
+        entries=tuple(
+            e.model_copy(update={"canonical_sha256": None, "canonical_version": None})
+            for e in old.entries
+        )
+    )
+    stripped.save(lock_path)
+    requests = len(served.requests)
+
+    report = run(served, tmp_path)
+
+    assert report.requests == 0 and len(served.requests) == requests
+    assert SourceLock.load(lock_path) == old
+
+
+def test_a_change_of_presentation_only_is_recognised(served: FakeCellar, tmp_path: Path) -> None:
+    act = formex_act("<ENACTING.TERMS><P>same text</P></ENACTING.TERMS>")
+    served.serve(CONSOLIDATED, formex_bundle(act))
+    run(served, tmp_path)
+    served.serve(CONSOLIDATED, formex_bundle(act, date_time=(2027, 1, 1, 0, 0, 0)))
+
+    report = run(served, tmp_path, refresh=True)
+
+    (result,) = [r for r in report.results if r.key == CONSOLIDATED]
+    assert result.outcome is Outcome.CHANGED
+    assert result.presentation_only is True
+
+
+def test_a_change_of_content_is_not_presentation(served: FakeCellar, tmp_path: Path) -> None:
+    served.serve(CONSOLIDATED, formex_bundle(formex_act("<P>old text</P>")))
+    run(served, tmp_path)
+    served.serve(CONSOLIDATED, formex_bundle(formex_act("<P>new text</P>")))
+
+    report = run(served, tmp_path, refresh=True)
+
+    (result,) = [r for r in report.results if r.key == CONSOLIDATED]
+    assert result.outcome is Outcome.CHANGED
+    assert result.presentation_only is False
+
+
+def test_a_payload_that_cannot_be_canonicalised_is_a_failure(
+    served: FakeCellar, tmp_path: Path
+) -> None:
+    """A zip that passes the envelope check but has no usable descriptor."""
+    served.serve(CONSOLIDATED, formex_zip())
+
+    report = run(served, tmp_path)
+
+    (failure,) = report.failed
+    assert failure.key == CONSOLIDATED
+    assert failure.error is not None and "canonicalise" in failure.error

@@ -3,10 +3,16 @@
 - **Status:** Accepted
 - **Date:** 8 October 2026
 - **Step:** S0
-- **Revision:** replaces an unpublished draft of 8 August 2026, which chose XHTML
-  because Formex appeared to be unavailable. That conclusion came from a
-  malformed request (Evidence §1). The draft is recorded here because the
-  mistake is easy to repeat.
+- **Revisions:**
+  - Replaces an unpublished draft of 8 August 2026, which chose XHTML because
+    Formex appeared to be unavailable. That conclusion came from a malformed
+    request (Evidence §1).
+  - Revised again on 8 October 2026, during S2. The first version of this record
+    stated that Formex carries no per-block amendment markers. It does, as
+    processing instructions (Evidence §3); the analysis had looked only at
+    elements. With the markers in Formex, the role of the XHTML changes.
+
+  Both mistakes are recorded because both are easy to repeat.
 
 ## Context
 
@@ -82,12 +88,38 @@ act has 553 paragraph identifiers, all unique.
 
 The identifier sets are identical in English and Italian for all three works.
 
-### 3. Formex has no per-block amendment markers
+### 3. Formex marks every amendment, as processing instructions
 
-The consolidated Formex (root `CONS.ACT`) names the amending act in its header
-(`GR.MOD.ACT`) but does not mark which block comes from it. Those markers exist
-only in the XHTML manifestation: 129 `<p class="modref">` elements — 65 `▼M1`,
-60 `▼B`, and 4 `▼M1` that mark deleted text.
+The consolidated Formex (root `CONS.ACT`) wraps each amended block in a pair of
+processing instructions:
+
+```xml
+<?CLG.MDFO ID="O001001M013000" IDREF="C001001M013000" ACTION="DELETED"
+  LEVEL="STRUCTURE" COMMAND="EXPLICIT" ACTIVE.DOC="32026R1744"
+  ACTIVE.LOC="AR:1;PT:9;PT:b" MOD.LEVEL="1"?>
+<PARAG IDENTIFIER="010.005"> … </PARAG>
+<?CLG.MDFC ID="C001001M013000" IDREF="O001001M013000"?>
+```
+
+There are 77 such pairs in each language: 48 `REPLACED`, 25 `INSERTED`,
+4 `DELETED`, all from `32026R1744`. Each names the exact provision of the
+amending act that made the change: `AR:1;PT:9;PT:b` is Article 1, point (9)(b)
+of the Omnibus, which reads "paragraph 5 is deleted".
+
+Two properties matter:
+
+- **Deleted text stays in place, marked.** Article 10(5), point 1 of Annex I
+  Section A, and points 7 and 9 of Annex VIII Section B are present in the
+  consolidated Formex with their 2024 text, each after a `DELETED` marker.
+  Reading the Formex without the markers yields provisions that are no longer in
+  force.
+- **Processing instructions are easy to lose.** A parser configured to drop
+  them, or an analysis that iterates over elements only, sees no marker at all.
+  That is how the first version of this record missed them.
+
+The XHTML marks the same amendments at a coarser grain — 129
+`<p class="modref">` elements: 65 `▼M1`, 60 `▼B`, and 4 `▼M1` followed by a
+rule where text was deleted — and removes the deleted text.
 
 ### 4. XHTML identifiers stop at article level in the consolidated text
 
@@ -109,35 +141,40 @@ text.
 
 ## Decision
 
-**Two manifestations are acquired for every work and language, and each is used
-only for what the other cannot provide.**
+**Two manifestations are acquired for every work and language. Formex is the
+source of everything published; XHTML is the independent check.**
 
 1. **Formex is the primary source** — `Accept: application/zip;mtype=fmx4`. It
-   provides the text and the whole structure: articles, paragraphs,
-   subparagraphs, points, annexes, recitals.
-2. **XHTML is a secondary source** — `Accept: application/xhtml+xml`. It is used
-   for exactly two things:
-   - the per-block amendment markers `▼M1`/`▼B` of the consolidated text;
+   provides the text, the whole structure (articles, paragraphs, subparagraphs,
+   points, annexes, recitals) and the amendment markers, with the exact
+   provision of the amending act behind each change.
+2. **XHTML is the verification source** — `Accept: application/xhtml+xml`. It
+   is used for:
    - the EUR-Lex fragment identifiers (`art_6`, `cpt_III`, `anx_III`,
-     `rct_58`), as an independent check that every identifier this project
-     calls inherited exists in the source and resolves on EUR-Lex.
+     `rct_58`), to check that every identifier this project calls inherited
+     exists in the source and resolves on EUR-Lex;
+   - an independent rendering by the same publisher: its text, its `▼M1`/`▼B`
+     markers and its deletions must agree with what is read from Formex.
 3. **Languages are a request parameter**: `Accept-Language: ita` and `eng` in v1.
 
 Direct consequences for the technical choices:
 
 1. **Formex is parsed with `lxml` in XML mode**, with entity resolution and
-   network access disabled. XHTML is parsed with `lxml` in HTML mode plus
-   `cssselect`, and only for identifiers and `modref` markers.
+   network access disabled and **processing instructions kept**. XHTML is parsed
+   with `lxml` in HTML mode.
 2. **Inherited identifiers reach paragraph level**, not article level. How
    identifiers are written, and how the levels below paragraph are identified,
    is the subject of [ADR-0002](0002-identifiers.md).
 3. **Quoted text is never structure.** Text inside `QUOT.S` belongs to the node
    that quotes it.
-4. **The cache keeps the raw payloads**, keyed by `(celex, lang, accept)`. The
+4. **Deletions are applied, not ignored.** A block after a `DELETED` marker is
+   not part of the text in force, though it remains in the source and in the
+   diff.
+5. **The cache keeps the raw payloads**, keyed by `(celex, lang, accept)`. The
    306 → 284 discrepancy above cannot be explained only because the August bytes
    were lost.
-5. **Drift detection cannot compare response bytes** of either manifestation; a
-   canonical form is required. Subject of ADR-0006.
+6. **Drift detection cannot compare response bytes** of either manifestation; a
+   canonical form is required ([ADR-0006](0006-canonical-form.md)).
 
 ## Consequences
 
@@ -147,19 +184,24 @@ Direct consequences for the technical choices:
   on our parsing" — shrinks. Paragraphs are inherited; subparagraphs and points
   are explicit elements, not inferred from text. ADR-0002 records the
   measurement.
-- Two manifestations from the same publisher allow cross-checks: the article
-  sets must coincide, and so must the texts after canonicalisation.
-- The `modref` markers remain the ground truth for validating the diff.
+- Amendments come with their source: every change in the consolidated text
+  points to the provision of the Omnibus that made it.
+- Text, structure and markers come from one manifestation, so nothing has to be
+  aligned across manifestations to attach a marker to a paragraph.
+- Two renderings from the same publisher allow cross-checks: the article sets
+  must coincide, the texts must agree after canonicalisation (measured in
+  ADR-0006), and the `▼M1` markers must fall where the Formex markers are.
 
 **Negative**
 
 - Two parsers and two payloads per work and language: twelve payloads for v1.
-- The markers come from one manifestation and the nodes from the other. The
-  consolidated XHTML has no identifiers below article level, so attaching a
-  marker to a paragraph or point means aligning the two texts within each
-  article. Both manifestations were regenerated together, so their texts are
-  expected to coincide after canonicalisation. This alignment is a new risk,
-  measured in S8.
+- The amendment markers are processing instructions, a mechanism the parser
+  must preserve explicitly. A test asserts that they survive parsing, and the
+  canonical form keeps them, so their disappearance upstream would be reported
+  as a change.
+- Deleted provisions are present in the source text. Every consumer of the
+  consolidated Formex must honour the `DELETED` markers; this project does it
+  once, in the parser.
 - The Formex schema evolves. The parser checks the declared schema version and
   fails loudly on an unknown one, rather than parsing it on trust.
 - If the Publications Office publishes this act in AKN4EU, this decision must be
@@ -170,7 +212,7 @@ Direct consequences for the technical choices:
 | Alternative | Why not |
 |---|---|
 | XHTML alone (the August draft) | No structure below article level in the consolidated text: paragraphs and points would have to be recovered from text and CSS classes |
-| Formex alone | No per-block amendment markers: the diff would lose its ground truth |
+| Formex alone | Would provide everything published, but would leave the inherited identifiers unchecked against EUR-Lex and remove the only independent check on the text |
 | XML from EUR-Lex | Not the text — Cellar metadata |
 | Official Journal PDF | The authentic manifestation, but structure would have to be recovered from layout |
 | Scraping EUR-Lex HTML pages | Same content as the Cellar XHTML, wrapped in site chrome and without explicit content negotiation |

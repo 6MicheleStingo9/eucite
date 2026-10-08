@@ -104,7 +104,10 @@ def _cmd_fetch(args: argparse.Namespace) -> int:
         if r.outcome is Outcome.FAILED or r.entry is None:
             print(f"{r.outcome:<9} {r.key}  {r.error}")
         else:
-            print(f"{r.outcome:<9} {r.key}  sha256:{r.entry.sha256[:12]}  {r.entry.size:>9} B")
+            note = "  (presentation only)" if r.presentation_only else ""
+            print(
+                f"{r.outcome:<9} {r.key}  sha256:{r.entry.sha256[:12]}  {r.entry.size:>9} B{note}"
+            )
     print(
         f"{len(report.results)} sources, {report.requests} requests, "
         f"{len(report.failed)} failed; lock {'updated' if lock_written else 'unchanged'}"

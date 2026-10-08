@@ -6,11 +6,17 @@ change upstream without notice.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import httpx
 import pytest
 
+from eucite.cache import LockEntry, SourceLock
+from eucite.canonical import canonicalize
 from eucite.cellar import CellarClient, celex_url
 from eucite.sources import Manifestation, SourceKey
+
+LOCK = SourceLock.load(Path(__file__).resolve().parent.parent / "sources.lock.json")
 
 pytestmark = pytest.mark.network
 
@@ -31,3 +37,11 @@ def test_single_document_formex_request_still_fails() -> None:
         timeout=60,
     )
     assert response.status_code == 404
+
+
+@pytest.mark.parametrize("entry", LOCK.entries, ids=lambda e: str(e.key))
+def test_what_cellar_serves_today_matches_the_locked_canonical_form(entry: LockEntry) -> None:
+    """Drift detection in miniature: the committed canonical hash must still hold."""
+    with CellarClient() as client:
+        payload = client.fetch(entry.key)
+    assert canonicalize(entry.manifestation, payload.content).sha256 == entry.canonical_sha256

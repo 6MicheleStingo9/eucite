@@ -69,8 +69,12 @@ byte-for-byte from the cached source.
 
 ## Sources
 
-Each work is read in two manifestations served by Cellar: Formex for text and
-structure, XHTML for the amendment markers ([ADR-0001](docs/adr/0001-source-format.md)).
+Each work is read in two manifestations served by Cellar: Formex for text,
+structure and amendment markers, XHTML to check identifiers against EUR-Lex and
+as an independent rendering of the same text
+([ADR-0001](docs/adr/0001-source-format.md)). Every payload also has a canonical
+form, so that a change in presentation is never mistaken for a change in the law
+([ADR-0006](docs/adr/0006-canonical-form.md)).
 Languages: Italian and English.
 
 | Content | CELEX |

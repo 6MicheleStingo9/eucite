@@ -13,7 +13,9 @@
       "size": 107868,
       "retrieved_at": "2026-10-08T17:35:48.391850Z",
       "etag": "\"Czp-20260811183022332\"",
-      "last_modified": "Tue, 11 Aug 2026 16:30:22 GMT"
+      "last_modified": "Tue, 11 Aug 2026 16:30:22 GMT",
+      "canonical_sha256": "2e7a7691348e2da2db87a13d201213c97c1b2e3160dbf75928ea423689ad5585",
+      "canonical_version": 1
     },
     {
       "celex": "02024R1689-20260727",
@@ -27,7 +29,9 @@
       "size": 851286,
       "retrieved_at": "2026-10-08T17:35:48.721112Z",
       "etag": "\"Con-20260811183059000\"",
-      "last_modified": "Tue, 11 Aug 2026 16:30:59 GMT"
+      "last_modified": "Tue, 11 Aug 2026 16:30:59 GMT",
+      "canonical_sha256": "88aeebe1b0ad0ff9f5c8e525f6dd5a4defbd1748963647330df8628dcf15d960",
+      "canonical_version": 1
     },
     {
       "celex": "02024R1689-20260727",
@@ -41,7 +45,9 @@
       "size": 114917,
       "retrieved_at": "2026-10-08T17:35:48.899132Z",
       "etag": "\"Czp-20260811204117428\"",
-      "last_modified": "Tue, 11 Aug 2026 18:41:17 GMT"
+      "last_modified": "Tue, 11 Aug 2026 18:41:17 GMT",
+      "canonical_sha256": "ca410eb58e2d86c2dbbb9bf3e6bf14b8c86cdb31ccd6b654752221870417b0f3",
+      "canonical_version": 1
     },
     {
       "celex": "02024R1689-20260727",
@@ -55,7 +61,9 @@
       "size": 889040,
       "retrieved_at": "2026-10-08T17:35:49.249192Z",
       "etag": "\"Con-20260811204143000\"",
-      "last_modified": "Tue, 11 Aug 2026 18:41:43 GMT"
+      "last_modified": "Tue, 11 Aug 2026 18:41:43 GMT",
+      "canonical_sha256": "d0e184d81a402a3a916e7278166d75aa8c8cf92621d52642cfeec252fa413b3e",
+      "canonical_version": 1
     },
     {
       "celex": "32024R1689",
@@ -69,7 +77,9 @@
       "size": 171490,
       "retrieved_at": "2026-10-08T17:35:49.419258Z",
       "etag": "\"Czp-20241017133819239\"",
-      "last_modified": "Thu, 17 Oct 2024 11:38:19 GMT"
+      "last_modified": "Thu, 17 Oct 2024 11:38:19 GMT",
+      "canonical_sha256": "397bbb09a03ce4801700f6d3cbcd15d61af229c5d7777c2eed9a60d44e67e86e",
+      "canonical_version": 1
     },
     {
       "celex": "32024R1689",
@@ -83,7 +93,9 @@
       "size": 1262391,
       "retrieved_at": "2026-10-08T17:35:49.727195Z",
       "etag": "\"Con-20241017133920000\"",
-      "last_modified": "Thu, 17 Oct 2024 11:39:20 GMT"
+      "last_modified": "Thu, 17 Oct 2024 11:39:20 GMT",
+      "canonical_sha256": "77b26965efae195a295d1853125ee99938ea3212e3988d2a6a7f75910113b9cf",
+      "canonical_version": 1
     },
     {
       "celex": "32024R1689",
@@ -97,7 +109,9 @@
       "size": 184028,
       "retrieved_at": "2026-10-08T17:35:49.907922Z",
       "etag": "\"Czp-20241017133819239\"",
-      "last_modified": "Thu, 17 Oct 2024 11:38:19 GMT"
+      "last_modified": "Thu, 17 Oct 2024 11:38:19 GMT",
+      "canonical_sha256": "73d0e3a7edf1c35f3611851e385dadbfb9217a49cbd6e2c1736854502ee015f5",
+      "canonical_version": 1
     },
     {
       "celex": "32024R1689",
@@ -111,7 +125,9 @@
       "size": 1327017,
       "retrieved_at": "2026-10-08T17:35:50.192239Z",
       "etag": "\"Con-20241017133921000\"",
-      "last_modified": "Thu, 17 Oct 2024 11:39:21 GMT"
+      "last_modified": "Thu, 17 Oct 2024 11:39:21 GMT",
+      "canonical_sha256": "f07d6789ba9cdebb1fcd6b1bedb238fad40cbeee8e92c1b1751a00184ab285c7",
+      "canonical_version": 1
     },
     {
       "celex": "32026R1744",
@@ -125,7 +141,9 @@
       "size": 44683,
       "retrieved_at": "2026-10-08T17:35:50.362388Z",
       "etag": "\"Czp-20260724032420040\"",
-      "last_modified": "Fri, 24 Jul 2026 01:24:20 GMT"
+      "last_modified": "Fri, 24 Jul 2026 01:24:20 GMT",
+      "canonical_sha256": "b400ab820f123c24a683d98ff680f4e47e5bfad7f4c67a3603cda6dc20490b79",
+      "canonical_version": 1
     },
     {
       "celex": "32026R1744",
@@ -139,7 +157,9 @@
       "size": 351287,
       "retrieved_at": "2026-10-08T17:35:50.594276Z",
       "etag": "\"Con-20260724032506000\"",
-      "last_modified": "Fri, 24 Jul 2026 01:25:06 GMT"
+      "last_modified": "Fri, 24 Jul 2026 01:25:06 GMT",
+      "canonical_sha256": "cfb5a9a44a4f06156c87f0ace2329ffca3bf631c79db3d27c5d7665228511bd6",
+      "canonical_version": 1
     },
     {
       "celex": "32026R1744",
@@ -153,7 +173,9 @@
       "size": 47673,
       "retrieved_at": "2026-10-08T17:35:50.765560Z",
       "etag": "\"Czp-20260724032420040\"",
-      "last_modified": "Fri, 24 Jul 2026 01:24:20 GMT"
+      "last_modified": "Fri, 24 Jul 2026 01:24:20 GMT",
+      "canonical_sha256": "532d328c4b65bd188833666a73e11361760917b78fd32a2a3d0948a0c9c8f041",
+      "canonical_version": 1
     },
     {
       "celex": "32026R1744",
@@ -167,7 +189,9 @@
       "size": 368928,
       "retrieved_at": "2026-10-08T17:35:51.102248Z",
       "etag": "\"Con-20260724032506000\"",
-      "last_modified": "Fri, 24 Jul 2026 01:25:06 GMT"
+      "last_modified": "Fri, 24 Jul 2026 01:25:06 GMT",
+      "canonical_sha256": "73a52db8828a5fd0f06e361c60067df960a1b425ffff8f17eb37e27e05137f4b",
+      "canonical_version": 1
     }
   ]
 }

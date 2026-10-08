@@ -5,18 +5,25 @@ again unless a refresh is asked for. A refresh that returns identical bytes
 writes nothing. A refresh that returns different bytes keeps the old object and
 moves the lock to the new one: the lock diff is the record of the change.
 
-Whether a byte change is a change in the law is not decided here. That needs the
-canonical form (S2) and is the job of drift detection (S9).
+Every entry also records the hash of the payload's canonical form (ADR-0006).
+When a refresh brings different bytes with the same canonical hash, the change
+is reported as presentation only. Deciding what that means for the build is the
+job of drift detection (S9).
 """
 
 from __future__ import annotations
 
+import zipfile
 from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import StrEnum
 
+from lxml import etree
+
 from eucite.cache import LockEntry, ObjectStore, SourceLock, lock_entry
+from eucite.canonical import CANONICAL_VERSION, canonicalize
 from eucite.cellar import CellarClient, CellarError
+from eucite.formex import BundleError
 from eucite.sources import SourceKey
 
 __all__ = ["FetchReport", "FetchResult", "Outcome", "fetch_sources"]
@@ -40,6 +47,8 @@ class FetchResult:
     outcome: Outcome
     entry: LockEntry | None = None
     error: str | None = None
+    presentation_only: bool | None = None
+    """For ``CHANGED``: whether the canonical form is unchanged."""
 
 
 @dataclass(frozen=True)
@@ -54,6 +63,27 @@ class FetchReport:
     @property
     def requests(self) -> int:
         return sum(1 for r in self.results if r.outcome is not Outcome.CACHED)
+
+
+class CanonicalisationError(Exception):
+    pass
+
+
+def _canonical(key: SourceKey, content: bytes) -> str:
+    try:
+        return canonicalize(key.manifestation, content).sha256
+    except (BundleError, ValueError, SyntaxError, etree.LxmlError, zipfile.BadZipFile) as exc:
+        raise CanonicalisationError(f"{key}: cannot canonicalise: {exc}") from exc
+
+
+def _with_canonical(entry: LockEntry, store: ObjectStore) -> LockEntry:
+    """Fill or refresh the canonical hash from the stored payload, without network."""
+    if entry.canonical_sha256 is not None and entry.canonical_version == CANONICAL_VERSION:
+        return entry
+    digest = _canonical(entry.key, store.get(entry.sha256))
+    return entry.model_copy(
+        update={"canonical_sha256": digest, "canonical_version": CANONICAL_VERSION}
+    )
 
 
 def fetch_sources(
@@ -72,18 +102,23 @@ def fetch_sources(
     results: list[FetchResult] = []
     for key in keys:
         current = lock.get(key)
-        if current is not None and store.has(current.sha256) and not refresh:
-            results.append(FetchResult(key, Outcome.CACHED, current))
-            continue
-
         try:
+            if current is not None and store.has(current.sha256) and not refresh:
+                current = _with_canonical(current, store)
+                lock = lock.with_entry(current)
+                results.append(FetchResult(key, Outcome.CACHED, current))
+                continue
+
             payload = client.fetch(key)
-        except CellarError as exc:
+            canonical = _canonical(key, payload.content)
+        except (CellarError, CanonicalisationError) as exc:
             results.append(FetchResult(key, Outcome.FAILED, current, str(exc)))
             continue
 
         digest, _ = store.put(payload.content)
         if current is not None and current.sha256 == digest:
+            current = _with_canonical(current, store)
+            lock = lock.with_entry(current)
             results.append(FetchResult(key, Outcome.VERIFIED, current))
             continue
 
@@ -97,9 +132,15 @@ def fetch_sources(
             retrieved_at=payload.retrieved_at,
             etag=payload.etag,
             last_modified=payload.last_modified,
+            canonical_sha256=canonical,
+            canonical_version=CANONICAL_VERSION,
         )
         lock = lock.with_entry(entry)
-        outcome = Outcome.FETCHED if current is None else Outcome.CHANGED
-        results.append(FetchResult(key, outcome, entry))
+        if current is None:
+            results.append(FetchResult(key, Outcome.FETCHED, entry))
+        else:
+            previous = _with_canonical(current, store) if store.has(current.sha256) else current
+            same = previous.canonical_sha256 == canonical
+            results.append(FetchResult(key, Outcome.CHANGED, entry, presentation_only=same))
 
     return FetchReport(lock=lock, results=tuple(results))

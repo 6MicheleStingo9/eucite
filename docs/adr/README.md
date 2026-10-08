@@ -16,7 +16,7 @@ know before depending on it.
 | 0003 | Node identity across versions | To write | S8 |
 | 0004 | Edge stratification by guarantee | To write | S10 |
 | 0005 | Multi-source composition and recitals | To write | S8 |
-| 0006 | Canonical form and drift detection | To write | S2 |
+| [0006](0006-canonical-form.md) | Canonical form and drift detection | Accepted | S2 |
 | 0007 | Three axes of versioning | To write | S11 |
 | 0008 | No LLM on the critical path | To write | S11 |
 | 0009 | Choice of demonstrator application | To write | S11 |
