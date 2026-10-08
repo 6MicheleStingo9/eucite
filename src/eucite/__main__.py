@@ -71,6 +71,12 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="download again even if the source is cached",
     )
+    fetch.add_argument(
+        "--frozen",
+        action="store_true",
+        help="restore exactly what the lock records; fail if a source is missing "
+        "from it or Cellar serves different bytes, and never change it",
+    )
     fetch.add_argument("--cache", type=Path, default=DEFAULT_CACHE, help="cache directory")
     fetch.add_argument("--lock", type=Path, default=DEFAULT_LOCK, help="source lock file")
     return parser
@@ -97,8 +103,9 @@ def _cmd_fetch(args: argparse.Namespace) -> int:
             store=ObjectStore(args.cache),
             lock=SourceLock.load(args.lock),
             refresh=args.refresh,
+            frozen=args.frozen,
         )
-    lock_written = report.lock.save(args.lock)
+    lock_written = False if args.frozen else report.lock.save(args.lock)
 
     for r in report.results:
         if r.outcome is Outcome.FAILED or r.entry is None:

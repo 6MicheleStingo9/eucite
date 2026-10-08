@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from eucite.cache import ObjectStore, SourceLock
+from eucite.cache import ObjectStore, SourceLock, sha256_hex
 from eucite.canonical import CANONICAL_VERSION
 from eucite.fetch import FetchReport, Outcome, fetch_sources
 from eucite.sources import Manifestation, SourceKey, all_sources
@@ -35,7 +35,9 @@ def snapshot(root: Path) -> Snapshot:
     }
 
 
-def run(cellar: FakeCellar, root: Path, *, refresh: bool = False) -> FetchReport:
+def run(
+    cellar: FakeCellar, root: Path, *, refresh: bool = False, frozen: bool = False
+) -> FetchReport:
     lock_path = root / "sources.lock.json"
     report = fetch_sources(
         all_sources(),
@@ -43,9 +45,18 @@ def run(cellar: FakeCellar, root: Path, *, refresh: bool = False) -> FetchReport
         store=ObjectStore(root / "cache"),
         lock=SourceLock.load(lock_path),
         refresh=refresh,
+        frozen=frozen,
     )
-    report.lock.save(lock_path)
+    if not frozen:
+        report.lock.save(lock_path)
     return report
+
+
+def empty_cache(root: Path) -> None:
+    for p in sorted((root / "cache").rglob("*"), reverse=True):
+        if p.is_file():
+            p.chmod(0o644)
+            p.unlink()
 
 
 def outcomes(report: FetchReport) -> set[Outcome]:
@@ -117,15 +128,55 @@ def test_fresh_clone_restores_the_cache_from_the_lock(served: FakeCellar, tmp_pa
     """The lock is committed, the cache is not: a clone starts with a lock only."""
     run(served, tmp_path)
     lock_before = (tmp_path / "sources.lock.json").read_text()
-    for p in sorted((tmp_path / "cache").rglob("*"), reverse=True):
-        if p.is_file():
-            p.chmod(0o644)
-            p.unlink()
+    empty_cache(tmp_path)
 
     report = run(served, tmp_path)
 
     assert outcomes(report) == {Outcome.VERIFIED}
     assert (tmp_path / "sources.lock.json").read_text() == lock_before
+
+
+def test_frozen_fetch_restores_exactly_the_locked_sources(
+    served: FakeCellar, tmp_path: Path
+) -> None:
+    run(served, tmp_path)
+    empty_cache(tmp_path)
+
+    report = run(served, tmp_path, frozen=True)
+
+    assert outcomes(report) == {Outcome.VERIFIED}
+    lock = SourceLock.load(tmp_path / "sources.lock.json")
+    assert all(ObjectStore(tmp_path / "cache").has(e.sha256) for e in lock.entries)
+
+
+def test_frozen_fetch_fails_on_bytes_that_differ_from_the_lock(
+    served: FakeCellar, tmp_path: Path
+) -> None:
+    run(served, tmp_path)
+    empty_cache(tmp_path)
+    changed = SourceKey("32026R1744", "eng", Manifestation.FORMEX)
+    served.serve(changed, payload_for(changed, revision=1))
+    lock_before = (tmp_path / "sources.lock.json").read_text()
+
+    report = run(served, tmp_path, frozen=True)
+
+    [failure] = report.failed
+    assert failure.key == changed
+    assert "differ from the lock" in (failure.error or "")
+    assert report.lock.get(changed) == SourceLock.load(tmp_path / "sources.lock.json").get(changed)
+    assert (tmp_path / "sources.lock.json").read_text() == lock_before
+    store = ObjectStore(tmp_path / "cache")
+    assert not store.has(sha256_hex(payload_for(changed, revision=1)))
+
+
+def test_frozen_fetch_does_not_request_what_the_lock_lacks(
+    served: FakeCellar, tmp_path: Path
+) -> None:
+    report = run(served, tmp_path, frozen=True)
+
+    assert outcomes(report) == {Outcome.FAILED}
+    assert served.requests == []
+    assert all("not in the lock" in (r.error or "") for r in report.results)
 
 
 def test_one_failure_does_not_stop_the_others(cellar: FakeCellar, tmp_path: Path) -> None:

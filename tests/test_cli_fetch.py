@@ -57,3 +57,26 @@ def test_failure_sets_the_exit_status(
 def test_unknown_work_is_rejected_by_the_parser(tmp_path: Path) -> None:
     with pytest.raises(SystemExit):
         fetch(tmp_path, "--work", "32016R0679")
+
+
+def test_frozen_restores_and_never_writes_the_lock(
+    offline: FakeCellar, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    assert fetch(tmp_path) == 0
+    lock_before = (tmp_path / "lock.json").read_bytes()
+    for p in sorted((tmp_path / "cache").rglob("*"), reverse=True):
+        if p.is_file():
+            p.chmod(0o644)
+            p.unlink()
+    capsys.readouterr()
+
+    assert fetch(tmp_path, "--frozen") == 0
+    out = capsys.readouterr().out
+    assert out.count("verified") == 12
+    assert "lock unchanged" in out
+    assert (tmp_path / "lock.json").read_bytes() == lock_before
+
+
+def test_frozen_without_a_lock_fails(offline: FakeCellar, tmp_path: Path) -> None:
+    assert fetch(tmp_path, "--frozen") == 1
+    assert not (tmp_path / "lock.json").exists()

@@ -4,7 +4,7 @@
 
 **Citations to the EU AI Act, checked against the text in force — built on a versioned, traceable, machine-readable representation of Regulation (EU) 2024/1689, in Italian and English.**
 
-> **Status: pre-alpha.** The source format and the identifier scheme are settled ([ADR-0001](docs/adr/0001-source-format.md), [ADR-0002](docs/adr/0002-identifiers.md)) and the sources can be fetched. No corpus is published yet.
+> **Status: pre-alpha.** The source format, the identifier scheme and the node model are settled ([ADR-0001](docs/adr/0001-source-format.md), [ADR-0002](docs/adr/0002-identifiers.md), [ADR-0012](docs/adr/0012-node-model.md)); the sources can be fetched and parsed in both languages. No corpus is published yet.
 
 ---
 
@@ -41,9 +41,12 @@ A dataset, a thin library to read it, and a checker for citations to it.
   against it. Subparagraphs and points are *derived* by this project's parser
   from the source's markup, and each says whether it rests on a printed label or
   on position. The dataset never blurs the two.
-- **Amendments are structured, not narrated.** The diff between the original act
-  and the consolidated text is data, with before/after and the method used to
-  match each node.
+- **Amendments are structured, not narrated.** Each node carries the amendments
+  the consolidated text records on it, with the provision of the amending act
+  that made them. A deleted provision keeps its identifier, without text, so a
+  citation of it is answered "deleted", not "not found". The diff between the
+  original act and the consolidated text is data, with before/after and the
+  method used to match each node.
 - **Citations are checked, not trusted.** "Article 6(3)(a)" or "articolo 6,
   paragrafo 3, lettera a)" resolves to the provision it names, in the version in
   force, together with whether its text changed since an earlier version. The
@@ -116,17 +119,20 @@ sono strumenti di documentazione privi di valore giuridico.***
 ```bash
 uv sync                      # install, including dev dependencies
 uv run pytest                # the whole suite runs offline
+uv run pytest -m data        # the parser on the real sources, read from cache/
 uv run pytest -m network     # the few checks against the real Cellar
 uv run ruff check
 uv run mypy
 
 uv run eucite fetch          # acquire the sources into cache/ and sources.lock.json
+uv run eucite fetch --frozen # restore exactly the locked sources, or fail
 ```
 
 `fetch` keeps every payload it has ever retrieved in a write-once cache and
 records the current one in `sources.lock.json`, which is committed: a change in
 what the Publications Office serves shows up as a diff of that file
-([ADR-0010](docs/adr/0010-cache-and-lock.md)).
+([ADR-0010](docs/adr/0010-cache-and-lock.md)). Tests on the real sources skip
+when `cache/` lacks them; `fetch --frozen` restores them as the lock pins them.
 
 Design decisions live in [`docs/adr/`](docs/adr/). They are part of the artefact,
 not paperwork: a project meant to be infrastructure for others has to explain why

@@ -73,4 +73,7 @@ markers = [
   # The whole suite must be runnable offline. Anything hitting EUR-Lex or
   # Cellar is marked and excluded by default in CI.
   "network: test requires network access to EUR-Lex/Cellar",
+  # Tests on the real sources, read from the local cache. Skipped when the
+  # cache lacks them; CI restores them with `eucite fetch --frozen`.
+  "data: test reads the locked sources from the local cache",
 ]

@@ -39,8 +39,40 @@ jobs:
 
       # The suite must be runnable without network access: tests that reach
       # EUR-Lex or Cellar are marked and excluded here. Upstream is watched by
-      # the scheduled drift-detection job (S9), not by the test suite.
+      # the scheduled drift-detection job (S9), not by the test suite. Tests on
+      # the real sources run in the `data` job.
       - name: Test
-        run: uv run pytest -m "not network"
+        run: uv run pytest -m "not network and not data"
         env:
+          PYTHONHASHSEED: "0"
+
+  data:
+    # The parser on the real sources, exactly as the lock pins them. The cache
+    # comes from GitHub's cache when the lock is unchanged, otherwise from
+    # Cellar; `--frozen` fails the job if Cellar serves different bytes.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked --all-extras --dev
+
+      - name: Restore the source cache
+        uses: actions/cache@v4
+        with:
+          path: cache
+          key: sources-${{ hashFiles('sources.lock.json') }}
+
+      - name: Fetch the locked sources
+        run: uv run eucite fetch --frozen
+
+      - name: Test on the real sources
+        run: uv run pytest -m data
+        env:
+          EUCITE_REQUIRE_DATA: "1"
           PYTHONHASHSEED: "0"

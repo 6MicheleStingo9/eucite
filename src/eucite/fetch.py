@@ -9,6 +9,12 @@ Every entry also records the hash of the payload's canonical form (ADR-0006).
 When a refresh brings different bytes with the same canonical hash, the change
 is reported as presentation only. Deciding what that means for the build is the
 job of drift detection (S9).
+
+A *frozen* fetch restores exactly what the lock records, or fails: a source
+missing from the lock, or bytes that differ from the locked ones, are failures
+and leave both the lock and the store untouched. It is how a build that has
+only the lock — a fresh clone, a CI runner — gets the sources the dataset was
+built from.
 """
 
 from __future__ import annotations
@@ -20,7 +26,7 @@ from enum import StrEnum
 
 from lxml import etree
 
-from eucite.cache import LockEntry, ObjectStore, SourceLock, lock_entry
+from eucite.cache import LockEntry, ObjectStore, SourceLock, lock_entry, sha256_hex
 from eucite.canonical import CANONICAL_VERSION, canonicalize
 from eucite.cellar import CellarClient, CellarError
 from eucite.formex import BundleError
@@ -93,6 +99,7 @@ def fetch_sources(
     store: ObjectStore,
     lock: SourceLock,
     refresh: bool = False,
+    frozen: bool = False,
 ) -> FetchReport:
     """Acquire ``keys``; return the updated lock and what happened to each key.
 
@@ -102,6 +109,9 @@ def fetch_sources(
     results: list[FetchResult] = []
     for key in keys:
         current = lock.get(key)
+        if frozen and current is None:
+            results.append(FetchResult(key, Outcome.FAILED, None, f"{key}: not in the lock"))
+            continue
         try:
             if current is not None and store.has(current.sha256) and not refresh:
                 current = _with_canonical(current, store)
@@ -110,6 +120,10 @@ def fetch_sources(
                 continue
 
             payload = client.fetch(key)
+            if frozen and current is not None and sha256_hex(payload.content) != current.sha256:
+                error = f"{key}: Cellar serves bytes that differ from the lock"
+                results.append(FetchResult(key, Outcome.FAILED, current, error))
+                continue
             canonical = _canonical(key, payload.content)
         except (CellarError, CanonicalisationError) as exc:
             results.append(FetchResult(key, Outcome.FAILED, current, str(exc)))

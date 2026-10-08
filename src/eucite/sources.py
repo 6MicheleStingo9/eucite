@@ -21,6 +21,7 @@ __all__ = [
     "SourceKey",
     "Work",
     "all_sources",
+    "represented_act",
     "work",
 ]
 
@@ -115,6 +116,18 @@ def work(celex: str) -> Work:
             return w
     known = ", ".join(w.celex for w in WORKS)
     raise ValueError(f"unknown work {celex!r}; the corpus is composed of: {known}")
+
+
+def represented_act(celex: str) -> str:
+    """The act a work's provisions belong to.
+
+    A consolidated version (sector ``0``, ``02024R1689-20260727``) represents
+    its base act (``32024R1689``): the same provision has the same identifier in
+    both. Any other work represents itself.
+    """
+    if celex.startswith("0"):
+        return "3" + celex[1:].split("-", 1)[0]
+    return celex
 
 
 def all_sources(

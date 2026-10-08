@@ -22,3 +22,4 @@ know before depending on it.
 | 0009 | Choice of demonstrator application | To write | S11 |
 | [0010](0010-cache-and-lock.md) | Immutable cache and source lock | Accepted | S1 |
 | 0011 | Supported citation syntax | To write | S7b |
+| [0012](0012-node-model.md) | Node model: structure, text and amendments | Accepted | S3 |

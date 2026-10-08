@@ -3,6 +3,9 @@
 - **Status:** Accepted
 - **Date:** 8 October 2026
 - **Step:** S4 (gate before the sub-paragraph parser)
+- **Extended by:** [ADR-0012](0012-node-model.md) — the root node (identifier:
+  the CELEX number alone), the `table` segment, and deleted provisions, which
+  keep their identifier and count for positional ones
 
 ## Context
 
