@@ -68,7 +68,7 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra --strict-markers"
+addopts = "-ra --strict-markers -m 'not network'"
 markers = [
   # The whole suite must be runnable offline. Anything hitting EUR-Lex or
   # Cellar is marked and excluded by default in CI.

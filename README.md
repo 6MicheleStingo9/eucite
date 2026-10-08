@@ -102,11 +102,19 @@ sono strumenti di documentazione privi di valore giuridico.***
 ## Development
 
 ```bash
-uv sync            # install, including dev dependencies
-uv run pytest      # the whole suite runs offline
+uv sync                      # install, including dev dependencies
+uv run pytest                # the whole suite runs offline
+uv run pytest -m network     # the few checks against the real Cellar
 uv run ruff check
 uv run mypy
+
+uv run ai-act-corpus fetch   # acquire the sources into cache/ and sources.lock.json
 ```
+
+`fetch` keeps every payload it has ever retrieved in a write-once cache and
+records the current one in `sources.lock.json`, which is committed: a change in
+what the Publications Office serves shows up as a diff of that file
+([ADR-0010](docs/adr/0010-cache-and-lock.md)).
 
 Design decisions live in [`docs/adr/`](docs/adr/). They are part of the artefact,
 not paperwork: a project meant to be infrastructure for others has to explain why

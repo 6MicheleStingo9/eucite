@@ -20,5 +20,5 @@ know before depending on it.
 | 0007 | Three axes of versioning | To write | S11 |
 | 0008 | No LLM on the critical path | To write | S11 |
 | 0009 | Choice of demonstrator application | To write | S11 |
-| 0010 | Immutable cache and source lock | To write | S1 |
+| [0010](0010-cache-and-lock.md) | Immutable cache and source lock | Accepted | S1 |
 | 0011 | Supported citation syntax | To write | S7b |

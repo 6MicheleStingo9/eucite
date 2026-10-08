@@ -28,14 +28,15 @@ def test_help_carries_the_disclaimer(capsys: pytest.CaptureFixture[str]) -> None
     assert "no legal value" in out
 
 
-def test_parser_advertises_no_unimplemented_command() -> None:
-    """``--help`` must never list a subcommand that does not work yet.
+# Subcommands implemented so far, each by the step that delivers it (S1, S7, S8).
+IMPLEMENTED = {"fetch"}
 
-    Subcommands are registered by the step that implements them (S1, S7, S8).
-    """
+
+def test_parser_advertises_no_unimplemented_command() -> None:
+    """``--help`` must never list a subcommand that does not work yet."""
     actions = [a for a in build_parser()._actions if a.dest == "command"]
     assert len(actions) == 1
-    assert not actions[0].choices
+    assert set(actions[0].choices or ()) == IMPLEMENTED
 
 
 def test_disclaimer_constant_is_not_empty() -> None:
