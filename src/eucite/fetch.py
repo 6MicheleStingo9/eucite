@@ -15,9 +15,9 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import StrEnum
 
-from ai_act_corpus.cache import LockEntry, ObjectStore, SourceLock, lock_entry
-from ai_act_corpus.cellar import CellarClient, CellarError
-from ai_act_corpus.sources import SourceKey
+from eucite.cache import LockEntry, ObjectStore, SourceLock, lock_entry
+from eucite.cellar import CellarClient, CellarError
+from eucite.sources import SourceKey
 
 __all__ = ["FetchReport", "FetchResult", "Outcome", "fetch_sources"]
 

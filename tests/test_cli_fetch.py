@@ -1,4 +1,4 @@
-"""``ai-act-corpus fetch`` end to end, against the offline Cellar double."""
+"""``eucite fetch`` end to end, against the offline Cellar double."""
 
 from __future__ import annotations
 
@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-import ai_act_corpus.__main__ as cli
-from ai_act_corpus.cache import SourceLock
+import eucite.__main__ as cli
+from eucite.cache import SourceLock
 from tests.doubles import FakeCellar, make_client
 
 

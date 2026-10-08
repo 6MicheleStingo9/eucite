@@ -1,8 +1,10 @@
-# ai-act-corpus
+# EUCITE
 
-**A versioned, traceable, machine-readable representation of Regulation (EU) 2024/1689 — the EU AI Act.**
+*Read it as "you cite".*
 
-> **Status: pre-alpha.** The feasibility spike is done and the source format is settled ([ADR-0001](docs/adr/0001-source-format.md)). No corpus is published yet.
+**Citations to the EU AI Act, checked against the text in force — built on a versioned, traceable, machine-readable representation of Regulation (EU) 2024/1689, in Italian and English.**
+
+> **Status: pre-alpha.** The source format and the identifier scheme are settled ([ADR-0001](docs/adr/0001-source-format.md), [ADR-0002](docs/adr/0002-identifiers.md)) and the sources can be fetched. No corpus is published yet.
 
 ---
 
@@ -12,7 +14,8 @@ On 24 July 2026 the Official Journal published **Regulation (EU) 2026/1744**, th
 Digital Omnibus on AI. It amended the AI Act, inserted new articles, and moved
 compliance deadlines. It entered into force three days later.
 
-Most tools built on the AI Act did not notice.
+Most tools built on the AI Act did not notice. Two months later, most of the
+open datasets of the AI Act we examined still ship the 2024 text.
 
 They did not notice because of how they were built: each one extracted the text
 once, hardcoded it, and shipped. There is no shared, verifiable representation
@@ -28,7 +31,7 @@ diff across amendments.
 
 ## What this is
 
-A dataset, and a thin library to read it.
+A dataset, a thin library to read it, and a checker for citations to it.
 
 - **Every node carries its provenance** — source work, CELEX identifier, source
   URL, retrieval time, checksums. You can always answer "where did this sentence
@@ -41,6 +44,11 @@ A dataset, and a thin library to read it.
 - **Amendments are structured, not narrated.** The diff between the original act
   and the consolidated text is data, with before/after and the method used to
   match each node.
+- **Citations are checked, not trusted.** "Article 6(3)(a)" or "articolo 6,
+  paragrafo 3, lettera a)" resolves to the provision it names, in the version in
+  force, together with whether its text changed since an earlier version. The
+  checker says whether a citation exists and what it points to — never whether
+  it is the right one for an argument.
 - **The source is watched.** A scheduled job re-fetches upstream and compares a
   canonical hash. A change in the law breaks the build. A change in EUR-Lex's
   whitespace does not.
@@ -108,7 +116,7 @@ uv run pytest -m network     # the few checks against the real Cellar
 uv run ruff check
 uv run mypy
 
-uv run ai-act-corpus fetch   # acquire the sources into cache/ and sources.lock.json
+uv run eucite fetch          # acquire the sources into cache/ and sources.lock.json
 ```
 
 `fetch` keeps every payload it has ever retrieved in a write-once cache and

@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from ai_act_corpus.cache import (
+from eucite.cache import (
     CacheCorruptionError,
     LockEntry,
     ObjectStore,
@@ -17,7 +17,7 @@ from ai_act_corpus.cache import (
     lock_entry,
     sha256_hex,
 )
-from ai_act_corpus.sources import Manifestation, SourceKey
+from eucite.sources import Manifestation, SourceKey
 from tests.doubles import FIXED_NOW
 
 KEY_A = SourceKey("32024R1689", "eng", Manifestation.FORMEX)

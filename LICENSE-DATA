@@ -42,7 +42,7 @@ When reusing this dataset, retain the following notice:
 
   Contains information from EUR-Lex, © European Union, 1998-2026,
   licensed under CC BY 4.0. Structured, identified and diffed by
-  ai-act-corpus. Modified from the original.
+  EUCITE. Modified from the original.
 
 Every node in the dataset additionally carries its own machine-readable
 provenance block (source work, CELEX identifier, source URL, retrieval

@@ -30,8 +30,8 @@ from urllib.parse import quote
 
 import httpx
 
-from ai_act_corpus import __version__
-from ai_act_corpus.sources import Manifestation, SourceKey
+from eucite import __version__
+from eucite.sources import Manifestation, SourceKey
 
 __all__ = [
     "CELLAR_CELEX_BASE",
@@ -47,7 +47,7 @@ __all__ = [
 ]
 
 CELLAR_CELEX_BASE = "https://publications.europa.eu/resource/celex/"
-USER_AGENT = f"ai-act-corpus/{__version__} (python-httpx)"
+USER_AGENT = f"eucite/{__version__} (python-httpx)"
 
 # Limits for a Formex bundle. The largest one in the corpus (the base act) holds
 # 16 files and about 0.8 MB uncompressed; these bounds leave ample room while

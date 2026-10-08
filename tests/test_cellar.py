@@ -5,7 +5,7 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from ai_act_corpus.cellar import (
+from eucite.cellar import (
     CellarError,
     NegotiationError,
     NotAvailableError,
@@ -15,7 +15,7 @@ from ai_act_corpus.cellar import (
     celex_url,
     validate_payload,
 )
-from ai_act_corpus.sources import Manifestation, SourceKey
+from eucite.sources import Manifestation, SourceKey
 from tests.doubles import FIXED_NOW, FakeCellar, formex_zip, make_client, xhtml
 
 FORMEX = SourceKey("32026R1744", "ita", Manifestation.FORMEX)
@@ -37,7 +37,7 @@ def test_every_request_carries_both_negotiation_headers(cellar: FakeCellar) -> N
     (request,) = cellar.requests
     assert request.headers["Accept"] == "application/zip;mtype=fmx4"
     assert request.headers["Accept-Language"] == "ita"
-    assert request.headers["User-Agent"].startswith("ai-act-corpus/")
+    assert request.headers["User-Agent"].startswith("eucite/")
 
 
 def test_corrigendum_celex_is_percent_encoded() -> None:

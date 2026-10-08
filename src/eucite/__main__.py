@@ -15,11 +15,11 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
-from ai_act_corpus import DISCLAIMER, __version__
-from ai_act_corpus.cache import ObjectStore, SourceLock
-from ai_act_corpus.cellar import CellarClient
-from ai_act_corpus.fetch import Outcome, fetch_sources
-from ai_act_corpus.sources import LANGUAGES, WORKS, Manifestation, all_sources, work
+from eucite import DISCLAIMER, __version__
+from eucite.cache import ObjectStore, SourceLock
+from eucite.cellar import CellarClient
+from eucite.fetch import Outcome, fetch_sources
+from eucite.sources import LANGUAGES, WORKS, Manifestation, all_sources, work
 
 DEFAULT_CACHE = Path("cache")
 DEFAULT_LOCK = Path("sources.lock.json")
@@ -27,7 +27,7 @@ DEFAULT_LOCK = Path("sources.lock.json")
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="ai-act-corpus",
+        prog="eucite",
         description="Structured representation of Regulation (EU) 2024/1689.",
         epilog=DISCLAIMER,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -35,7 +35,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--version",
         action="version",
-        version=f"ai-act-corpus {__version__}",
+        version=f"eucite {__version__}",
     )
     commands = parser.add_subparsers(dest="command", metavar="COMMAND")
 

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from ai_act_corpus.sources import LANGUAGES, WORKS, Manifestation, Role, all_sources, work
+from eucite.sources import LANGUAGES, WORKS, Manifestation, Role, all_sources, work
 
 
 def test_corpus_needs_twelve_payloads() -> None:

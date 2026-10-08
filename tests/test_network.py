@@ -9,8 +9,8 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from ai_act_corpus.cellar import CellarClient, celex_url
-from ai_act_corpus.sources import Manifestation, SourceKey
+from eucite.cellar import CellarClient, celex_url
+from eucite.sources import Manifestation, SourceKey
 
 pytestmark = pytest.mark.network
 

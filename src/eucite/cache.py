@@ -28,7 +28,7 @@ from typing import Literal
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
 
-from ai_act_corpus.sources import Manifestation, SourceKey
+from eucite.sources import Manifestation, SourceKey
 
 __all__ = [
     "CacheCorruptionError",

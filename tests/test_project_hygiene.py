@@ -75,9 +75,9 @@ def test_readme_carries_the_disclaimer() -> None:
 
 
 def test_package_docstring_carries_the_disclaimer() -> None:
-    import ai_act_corpus
+    import eucite
 
-    doc = _unwrapped(ai_act_corpus.__doc__ or "")
+    doc = _unwrapped(eucite.__doc__ or "")
     assert "not legal advice" in doc
     assert "no legal value" in doc
 

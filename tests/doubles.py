@@ -10,8 +10,8 @@ from urllib.parse import unquote
 
 import httpx
 
-from ai_act_corpus.cellar import CellarClient, RetryPolicy
-from ai_act_corpus.sources import Manifestation, SourceKey, all_sources
+from eucite.cellar import CellarClient, RetryPolicy
+from eucite.sources import Manifestation, SourceKey, all_sources
 
 FIXED_NOW = datetime(2026, 10, 8, 10, 0, tzinfo=UTC)
 

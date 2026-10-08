@@ -3,15 +3,15 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "ai-act-corpus"
+name = "eucite"
 version = "0.0.1"
-description = "Versioned, traceable, machine-readable representation of Regulation (EU) 2024/1689 (EU AI Act)"
+description = "Citations to the EU AI Act checked against the text in force, on a versioned, machine-readable Regulation (EU) 2024/1689"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "Michele Stingo" }]
-keywords = ["eu-ai-act", "eur-lex", "celex", "eli", "legal-data", "cellar"]
+keywords = ["eu-ai-act", "legal-citations", "eur-lex", "celex", "eli", "legal-data", "cellar"]
 classifiers = [
   "Development Status :: 2 - Pre-Alpha",
   "Intended Audience :: Developers",
@@ -35,7 +35,7 @@ dependencies = [
 ]
 
 [project.scripts]
-ai-act-corpus = "ai_act_corpus.__main__:main"
+eucite = "eucite.__main__:main"
 
 [dependency-groups]
 dev = [
@@ -46,7 +46,7 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/ai_act_corpus"]
+packages = ["src/eucite"]
 
 [tool.ruff]
 line-length = 100

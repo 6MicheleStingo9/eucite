@@ -10,9 +10,9 @@ from pathlib import Path
 
 import pytest
 
-from ai_act_corpus.cache import ObjectStore, SourceLock
-from ai_act_corpus.fetch import FetchReport, Outcome, fetch_sources
-from ai_act_corpus.sources import Manifestation, SourceKey, all_sources
+from eucite.cache import ObjectStore, SourceLock
+from eucite.fetch import FetchReport, Outcome, fetch_sources
+from eucite.sources import Manifestation, SourceKey, all_sources
 from tests.doubles import FakeCellar, make_client, payload_for
 
 Snapshot = dict[str, tuple[int, int]]

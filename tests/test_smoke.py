@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from ai_act_corpus import DISCLAIMER, __version__
-from ai_act_corpus.__main__ import build_parser, main
+from eucite import DISCLAIMER, __version__
+from eucite.__main__ import build_parser, main
 
 
 def test_version_is_exposed() -> None:
@@ -14,7 +14,7 @@ def test_version_is_exposed() -> None:
 
 def test_no_command_prints_help_and_succeeds(capsys: pytest.CaptureFixture[str]) -> None:
     assert main([]) == 0
-    assert "ai-act-corpus" in capsys.readouterr().out
+    assert "eucite" in capsys.readouterr().out
 
 
 def test_help_carries_the_disclaimer(capsys: pytest.CaptureFixture[str]) -> None:
