@@ -1,0 +1,27 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.hypothesis/
+.coverage
+htmlcov/
+
+# Immutable source cache (L0). Never committed: it is re-derivable from the
+# manifest, and committing it would put megabytes of EUR-Lex payloads in git.
+# The manifest with checksums IS committed.
+cache/
+
+# Generated dataset. Published as a release artefact, not tracked in-tree.
+dist-data/
+
+# Internal planning documents. Deliberately NOT in the public repository: they
+# contain positioning, competitive judgements and personal objectives that are
+# working material, not part of the artefact. The decisions that DO belong to
+# the artefact are restated in docs/adr/.
+piano-sviluppo-*.md

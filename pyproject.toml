@@ -1,0 +1,76 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ai-act-corpus"
+version = "0.0.1"
+description = "Versioned, traceable, machine-readable representation of Regulation (EU) 2024/1689 (EU AI Act)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Michele Stingo" }]
+keywords = ["eu-ai-act", "eur-lex", "celex", "eli", "legal-data", "cellar"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Legal Industry",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Text Processing :: Markup :: XML",
+  "Typing :: Typed",
+]
+
+# Deliberately minimal. This package is meant to be a dependency of other
+# projects; every runtime dependency added here is a cost imposed on them.
+# The CLI uses argparse from the standard library for the same reason.
+dependencies = [
+  "httpx>=0.27",
+  "lxml>=5.2",
+  "cssselect>=1.2",
+  "pydantic>=2.7",
+]
+
+[project.scripts]
+ai-act-corpus = "ai_act_corpus.__main__:main"
+
+[dependency-groups]
+dev = [
+  "pytest>=8.2",
+  "hypothesis>=6.100",
+  "ruff>=0.6",
+  "mypy>=1.11",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ai_act_corpus"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "PTH", "RUF"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["src", "tests"]
+warn_unreachable = true
+
+[[tool.mypy.overrides]]
+module = ["lxml.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+  # The whole suite must be runnable offline. Anything hitting EUR-Lex or
+  # Cellar is marked and excluded by default in CI.
+  "network: test requires network access to EUR-Lex/Cellar",
+]

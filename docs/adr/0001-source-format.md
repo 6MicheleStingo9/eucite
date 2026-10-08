@@ -1,0 +1,184 @@
+# ADR-0001 — Source format for acquisition
+
+- **Status:** Accepted
+- **Date:** 8 October 2026
+- **Step:** S0
+- **Revision:** replaces an unpublished draft of 8 August 2026, which chose XHTML
+  because Formex appeared to be unavailable. That conclusion came from a
+  malformed request (Evidence §1). The draft is recorded here because the
+  mistake is easy to repeat.
+
+## Context
+
+The project needs the text of Regulation (EU) 2024/1689 in a form from which the
+structure — chapters, articles, paragraphs, subparagraphs, points, annexes,
+recitals — can be rebuilt reproducibly. It needs it for three works:
+
+| Work | CELEX |
+|---|---|
+| Base act, as published in the Official Journal | `32024R1689` |
+| Consolidated text in force | `02024R1689-20260727` |
+| Digital Omnibus on AI, the amending act | `32026R1744` |
+
+It also needs the amendment markers that tell which block of the consolidated
+text comes from which act. Those markers are the ground truth used to validate
+the amendment diff (S8).
+
+## Evidence
+
+All requests were made against `publications.europa.eu` on 8 October 2026.
+Content negotiation on Cellar requires **both** `Accept` **and**
+`Accept-Language`: omitting the latter returns `HTTP 400`.
+
+### 1. Formex is available, as a bundle
+
+```bash
+B=http://publications.europa.eu/resource/celex/02024R1689-20260727
+
+curl -s -o /dev/null -w "%{http_code}\n" -L \
+  -H "Accept: application/xml;type=fmx4" -H "Accept-Language: eng" "$B"
+# 404
+
+curl -s -o fmx.zip -w "%{http_code} %{content_type}\n" -L \
+  -H "Accept: application/zip;mtype=fmx4" -H "Accept-Language: eng" "$B"
+# 200 application/zip — about 108 KB, two files: the act and its descriptor
+```
+
+A Formex manifestation is a bundle of files, so it is negotiated as a zip
+(`application/zip;mtype=fmx4`; `application/list;mtype=fmx4` lists the files).
+The bundle's size depends on the work: the consolidated text has 2 files (the
+act and its descriptor), the Omnibus 4, and the base act 16 — the enacting
+terms, one file per annex, a table of contents and a descriptor
+(`*.doc.xml` or `*.doc.fmx.xml`) that lists the others. A reader that opens
+only the largest file silently loses the annexes of the base act.
+The single-document form `application/xml;type=fmx4` returns 404. The August
+draft tried only the latter and concluded that Formex did not exist for this
+act. The Cellar branch notice of the consolidated text lists `fmx4` among its
+manifestations in every language: reading the notice first would have caught
+the error.
+
+Same result for `32024R1689` and `32026R1744`, in English and in Italian. The
+files declare the Formex schema 06.02.1 (`formex-06.02.1-20231031`).
+
+### 2. Formex carries identifiers down to paragraph level
+
+| | Consolidated | Base act | Omnibus |
+|---|---|---|---|
+| `ARTICLE` with `IDENTIFIER` | 119 (`006`, `004A`) | 113 | 11 |
+| `PARAG` with `IDENTIFIER` | 562 (`006.003`, `006.001A`) | 509 | 98 |
+| Recitals (`CONSID`) | 0 | 180 | 47 |
+
+Paragraphs inserted by the Omnibus carry a letter suffix (`006.001A`,
+`006.001B`), the same convention EUR-Lex uses for inserted articles (`art_4a`).
+
+Below paragraph level the structure is **explicit in the markup** but carries no
+identifier: subparagraphs are `ALINEA` elements, lists are `LIST` with a `TYPE`
+(`alpha`, `ARAB`, `DASH`, …), points are `ITEM` with their label in `NO.P`.
+
+Nine `PARAG` elements sit inside quoted text (`QUOT.S`) in Articles 107–109,
+which amend other regulations. They reuse the identifiers of those regulations
+and produce six apparent duplicates. Excluding quoted text, the consolidated
+act has 553 paragraph identifiers, all unique.
+
+The identifier sets are identical in English and Italian for all three works.
+
+### 3. Formex has no per-block amendment markers
+
+The consolidated Formex (root `CONS.ACT`) names the amending act in its header
+(`GR.MOD.ACT`) but does not mark which block comes from it. Those markers exist
+only in the XHTML manifestation: 129 `<p class="modref">` elements — 65 `▼M1`,
+60 `▼B`, and 4 `▼M1` that mark deleted text.
+
+### 4. XHTML identifiers stop at article level in the consolidated text
+
+The consolidated XHTML exposes 284 structural identifiers — `art_` (including
+`art_4a`, `art_60a`, `art_75a`–`art_75d`), `cpt_`, `cpt_*.sct_`, `anx_`,
+`tit_`, `enc_`, `fnp_` — and none below article level. The base act XHTML also
+exposes its 509 paragraphs, with the Formex identifiers as `id` (`006.003`).
+
+The August draft counted 306 structural identifiers in the consolidated XHTML.
+Cellar regenerated the consolidated manifestations on 11 August 2026; the cause
+of the difference cannot be reconstructed, because the bytes measured in August
+were not kept.
+
+### 5. What EUR-Lex offers as "XML" is not the text
+
+`https://eur-lex.europa.eu/legal-content/EN/TXT/XML/?uri=CELEX:32024R1689`
+returns the Cellar metadata notice (`<NOTICE type="branch">`), not the normative
+text.
+
+## Decision
+
+**Two manifestations are acquired for every work and language, and each is used
+only for what the other cannot provide.**
+
+1. **Formex is the primary source** — `Accept: application/zip;mtype=fmx4`. It
+   provides the text and the whole structure: articles, paragraphs,
+   subparagraphs, points, annexes, recitals.
+2. **XHTML is a secondary source** — `Accept: application/xhtml+xml`. It is used
+   for exactly two things:
+   - the per-block amendment markers `▼M1`/`▼B` of the consolidated text;
+   - the EUR-Lex fragment identifiers (`art_6`, `cpt_III`, `anx_III`,
+     `rct_58`), as an independent check that every identifier this project
+     calls inherited exists in the source and resolves on EUR-Lex.
+3. **Languages are a request parameter**: `Accept-Language: ita` and `eng` in v1.
+
+Direct consequences for the technical choices:
+
+1. **Formex is parsed with `lxml` in XML mode**, with entity resolution and
+   network access disabled. XHTML is parsed with `lxml` in HTML mode plus
+   `cssselect`, and only for identifiers and `modref` markers.
+2. **Inherited identifiers reach paragraph level**, not article level. How
+   identifiers are written, and how the levels below paragraph are identified,
+   is the subject of [ADR-0002](0002-identifiers.md).
+3. **Quoted text is never structure.** Text inside `QUOT.S` belongs to the node
+   that quotes it.
+4. **The cache keeps the raw payloads**, keyed by `(celex, lang, accept)`. The
+   306 → 284 discrepancy above cannot be explained only because the August bytes
+   were lost.
+5. **Drift detection cannot compare response bytes** of either manifestation; a
+   canonical form is required. Subject of ADR-0006.
+
+## Consequences
+
+**Positive**
+
+- The main technical risk of the plan — "everything below article level depends
+  on our parsing" — shrinks. Paragraphs are inherited; subparagraphs and points
+  are explicit elements, not inferred from text. ADR-0002 records the
+  measurement.
+- Two manifestations from the same publisher allow cross-checks: the article
+  sets must coincide, and so must the texts after canonicalisation.
+- The `modref` markers remain the ground truth for validating the diff.
+
+**Negative**
+
+- Two parsers and two payloads per work and language: twelve payloads for v1.
+- The markers come from one manifestation and the nodes from the other. The
+  consolidated XHTML has no identifiers below article level, so attaching a
+  marker to a paragraph or point means aligning the two texts within each
+  article. Both manifestations were regenerated together, so their texts are
+  expected to coincide after canonicalisation. This alignment is a new risk,
+  measured in S8.
+- The Formex schema evolves. The parser checks the declared schema version and
+  fails loudly on an unknown one, rather than parsing it on trust.
+- If the Publications Office publishes this act in AKN4EU, this decision must be
+  revisited.
+
+## Alternatives rejected
+
+| Alternative | Why not |
+|---|---|
+| XHTML alone (the August draft) | No structure below article level in the consolidated text: paragraphs and points would have to be recovered from text and CSS classes |
+| Formex alone | No per-block amendment markers: the diff would lose its ground truth |
+| XML from EUR-Lex | Not the text — Cellar metadata |
+| Official Journal PDF | The authentic manifestation, but structure would have to be recovered from layout |
+| Scraping EUR-Lex HTML pages | Same content as the Cellar XHTML, wrapped in site chrome and without explicit content negotiation |
+| Reusing a third-party dataset | The ones examined in October 2026 are built on the 2024 text only, without the Omnibus. Depending on someone else's copy would reintroduce the problem this project exists to solve |
+
+## References
+
+- Formex 06.02.1 schema, Publications Office of the European Union
+- Commission Decision 2011/833/EU on the reuse of Commission documents
+- EUR-Lex legal notice: consolidated texts are EU editorial content licensed
+  under CC BY 4.0
