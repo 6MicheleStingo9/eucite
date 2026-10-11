@@ -72,6 +72,18 @@ the Official Journal.
 There is no LLM anywhere in the pipeline. The output is meant to be reproducible
 byte-for-byte from the cached source.
 
+## Dataset
+
+The first release is
+**[dataset 2026.10.1](https://github.com/6MicheleStingo9/eucite/releases/tag/dataset-2026.10.1)**:
+the base act, the consolidated text of 27 July 2026 and the Digital Omnibus, in
+Italian and English, one JSON line per node
+([ADR-0013](docs/adr/0013-dataset-format.md)). It was written only after every
+inherited identifier had been found in EUR-Lex and the two languages had been
+found in parity; its manifest records those checks and the exact sources it was
+built from. Its README gives the two commands that derive it again, byte for
+byte, from those sources.
+
 ## Sources
 
 Each work is read in two manifestations served by Cellar: Formex for text,

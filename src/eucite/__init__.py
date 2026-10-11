@@ -15,7 +15,7 @@ from __future__ import annotations
 
 __all__ = ["DISCLAIMER", "DISCLAIMER_IT", "__version__"]
 
-__version__ = "0.0.1"
+__version__ = "0.1.0"
 
 DISCLAIMER = (
     "This project provides a structured representation of a legal text. "

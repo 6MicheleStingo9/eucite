@@ -2,14 +2,19 @@
 
 from __future__ import annotations
 
+import tomllib
+from pathlib import Path
+
 import pytest
 
 from eucite import DISCLAIMER, __version__
 from eucite.__main__ import build_parser, main
 
 
-def test_version_is_exposed() -> None:
-    assert __version__
+def test_version_is_exposed_and_matches_the_project() -> None:
+    """The manifest of a dataset names this version: it must be the released one."""
+    project = tomllib.loads((Path(__file__).parent.parent / "pyproject.toml").read_text())
+    assert __version__ == project["project"]["version"]
 
 
 def test_no_command_prints_help_and_succeeds(capsys: pytest.CaptureFixture[str]) -> None:

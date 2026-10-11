@@ -268,6 +268,7 @@ def _readme(documents: Sequence[Document], dataset_version: str | None) -> str:
         for d in documents
     )
     fields = ", ".join(f"`{f}`" for f in FIELDS)
+    version_flag = f" --dataset-version {dataset_version}" if dataset_version else ""
     return f"""# {title}
 
 Regulation (EU) 2024/1689 (the AI Act), its consolidated text and the act that
@@ -301,10 +302,11 @@ this order: {fields}.
 retrieval time and checksum, and the checks the dataset passed: every inherited
 identifier found in EUR-Lex, the languages in parity.
 
-To derive the dataset again from the same sources:
+To derive the dataset again from the same sources, with `eucite {__version__}`,
+in this directory:
 
     eucite fetch --frozen --lock {LOCK} --cache cache
-    eucite dump --check . --lock {LOCK} --cache cache
+    eucite dump --out . --check --lock {LOCK} --cache cache{version_flag}
 
 ## Licence
 

@@ -74,3 +74,19 @@ def test_archive(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
 def test_check_and_archive_exclude_each_other(tmp_path: Path) -> None:
     with pytest.raises(SystemExit):
         dump(tmp_path, "--check", "--archive", str(tmp_path / "a.tar.gz"))
+
+
+def test_the_shipped_lock_derives_the_dataset_again(tmp_path: Path) -> None:
+    """The commands in the README of a dataset, run with the lock it ships."""
+    corpus(tmp_path)
+    release = tmp_path / "release"
+    assert dump(tmp_path, "--out", str(release), "--dataset-version", "t.1") == 0
+    readme = (release / "README.md").read_text()
+    command = next(line.split() for line in readme.splitlines() if "eucite dump" in line)
+    assert command[1:] == [
+        "dump", "--out", ".", "--check", "--lock", "sources.lock.json",
+        "--cache", "cache", "--dataset-version", "t.1",
+    ]  # fmt: skip
+    args = [str(release / a) if a in (".", "sources.lock.json") else a for a in command[2:]]
+    args = [str(tmp_path / "cache") if a == "cache" else a for a in args]
+    assert cli.main(["dump", *args]) == 0

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "eucite"
-version = "0.0.1"
+version = "0.1.0"
 description = "Citations to the EU AI Act checked against the text in force, on a versioned, machine-readable Regulation (EU) 2024/1689"
 readme = "README.md"
 requires-python = ">=3.11"

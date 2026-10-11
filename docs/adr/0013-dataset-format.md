@@ -77,8 +77,10 @@ The manifest records what was checked.
 - Nothing in the output records when or where it was built. The same lock and
   the same version of the package give the same bytes; CI builds the dataset
   twice, in two processes with different hash seeds, and compares.
-- `eucite dump --check DIR` derives the dataset again and reports any file that
-  differs: the round trip from the locked sources to a published dataset.
+- `eucite dump --out DIR --check` derives the dataset again and reports any
+  file that differs: the round trip from the locked sources to a published
+  dataset. The README of the dataset gives the two commands, with the lock it
+  ships.
 - `read_dataset` and `read_nodes` read a dataset back into nodes, verifying the
   checksum of every file against the manifest and the text of every node
   against its `text_sha256`.
