@@ -23,3 +23,4 @@ know before depending on it.
 | [0010](0010-cache-and-lock.md) | Immutable cache and source lock | Accepted | S1 |
 | 0011 | Supported citation syntax | To write | S7b |
 | [0012](0012-node-model.md) | Node model: structure, text and amendments | Accepted | S3 |
+| [0013](0013-dataset-format.md) | Dataset format and release | Accepted | S7 |

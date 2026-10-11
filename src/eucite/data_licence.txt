@@ -1,0 +1,85 @@
+Licence applying to the generated dataset
+=========================================
+
+This file covers the DATA produced by this project (the corpus, the reference
+graph and the amendment diffs). The source code is covered separately by
+LICENSE (MIT).
+
+
+Upstream source and its licence
+-------------------------------
+
+The dataset is derived from documents published on EUR-Lex by the Publications
+Office of the European Union.
+
+The reuse of European Commission documents is governed by Commission Decision
+2011/833/EU of 12 December 2011 on the reuse of Commission documents. The
+editorial content owned by the European Union that is published on EUR-Lex —
+which includes the CONSOLIDATED TEXTS this project relies on — is licensed
+under the Creative Commons Attribution 4.0 International licence (CC BY 4.0).
+
+  https://eur-lex.europa.eu/content/legal-notice/legal-notice.html
+  https://creativecommons.org/licenses/by/4.0/legalcode
+
+
+Licence of this dataset
+-----------------------
+
+Because the dataset is a derivative of CC BY 4.0 material, it is distributed
+under the same licence:
+
+  Creative Commons Attribution 4.0 International (CC BY 4.0)
+
+A public-domain dedication (CC0) is NOT available for this dataset: the
+attribution requirement attached to the upstream consolidated texts cannot be
+waived by this project.
+
+
+Attribution required from downstream users
+------------------------------------------
+
+When reusing this dataset, retain the following notice:
+
+  Contains information from EUR-Lex, © European Union, 1998-2026,
+  licensed under CC BY 4.0. Structured, identified and diffed by
+  EUCITE. Modified from the original.
+
+Every node in the dataset names the source work (by its CELEX identifier) and
+the language it was read from. The manifest that accompanies the dataset gives,
+for each source, its URL, the time it was retrieved and its checksums, so
+attribution can be reconstructed per node rather than only per dataset.
+
+
+Indication of modifications
+---------------------------
+
+CC BY 4.0 requires that changes be indicated. This project makes the following
+modifications to the upstream material:
+
+  - the text is segmented into a typed node tree, and each node carries the
+    text of everything it contains;
+  - identifiers are attached to each node — inherited from the source where the
+    source provides them, derived by this project's parser below the paragraph
+    level (each node declares which of the two applies);
+  - whitespace is normalised and presentation markup is removed; footnotes are
+    moved to a separate field; superscripts are written with a caret (10^25);
+    numbers marked as such are grouped by thousands, as the Official Journal
+    prints them;
+  - amendment markers are extracted into structured fields, and provisions that
+    the consolidated text marks as deleted are kept as identifiers without
+    text;
+  - the formulae of the preamble and the final part (place, date, signatures)
+    are not included;
+  - several source works are distributed together, one file per work and
+    language.
+
+Apart from these, no word of the provisions included is altered, added or
+removed.
+
+
+No legal value
+--------------
+
+The consolidated texts on which this dataset is based are documentation tools
+and carry no legal value. Only the text published in the Official Journal of
+the European Union is authentic. See the disclaimer in README.md.

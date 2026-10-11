@@ -134,8 +134,9 @@ of the bundle no document refers to.
 
 The parser is a function of the bytes. A document loaded from the cache
 records where they came from (work, manifestation, URL, retrieval time, SHA-256
-of the payload and of its canonical form, from the lock). Whether the export
-repeats it on every node is decided in S7.
+of the payload and of its canonical form, from the lock). The dataset gives it
+by reference: each line names its work and language, the manifest the rest
+([ADR-0013](0013-dataset-format.md)).
 
 ## Evidence
 

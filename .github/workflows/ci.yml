@@ -18,10 +18,10 @@ jobs:
         python-version: ["3.11", "3.12", "3.13"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10
         with:
           enable-cache: true
 
@@ -52,10 +52,10 @@ jobs:
     # Cellar; `--frozen` fails the job if Cellar serves different bytes.
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v10
         with:
           enable-cache: true
 
@@ -63,7 +63,7 @@ jobs:
         run: uv sync --locked --all-extras --dev
 
       - name: Restore the source cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: cache
           key: sources-${{ hashFiles('sources.lock.json') }}
@@ -76,3 +76,20 @@ jobs:
         env:
           EUCITE_REQUIRE_DATA: "1"
           PYTHONHASHSEED: "0"
+
+      # The dataset is built only if every check passes (ADR-0013), then built
+      # again in another process, with another hash seed, and compared.
+      - name: Build the dataset
+        run: uv run eucite dump --out dist-data
+
+      - name: Build it again and compare
+        run: uv run eucite dump --out dist-data --check
+        env:
+          PYTHONHASHSEED: "1"
+
+      - name: Keep the dataset
+        uses: actions/upload-artifact@v7
+        with:
+          name: eucite-dataset
+          path: dist-data/
+          retention-days: 30

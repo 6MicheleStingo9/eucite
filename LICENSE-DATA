@@ -44,10 +44,10 @@ When reusing this dataset, retain the following notice:
   licensed under CC BY 4.0. Structured, identified and diffed by
   EUCITE. Modified from the original.
 
-Every node in the dataset additionally carries its own machine-readable
-provenance block (source work, CELEX identifier, source URL, retrieval
-timestamp and checksums), so attribution can be reconstructed per node rather
-than only per dataset.
+Every node in the dataset names the source work (by its CELEX identifier) and
+the language it was read from. The manifest that accompanies the dataset gives,
+for each source, its URL, the time it was retrieved and its checksums, so
+attribution can be reconstructed per node rather than only per dataset.
 
 
 Indication of modifications
@@ -56,15 +56,25 @@ Indication of modifications
 CC BY 4.0 requires that changes be indicated. This project makes the following
 modifications to the upstream material:
 
-  - the text is segmented into a typed node tree;
+  - the text is segmented into a typed node tree, and each node carries the
+    text of everything it contains;
   - identifiers are attached to each node — inherited from the source where the
     source provides them, derived by this project's parser below the paragraph
     level (each node declares which of the two applies);
-  - whitespace and presentation markup are normalised into a canonical form;
-  - amendment markers are extracted into structured fields;
-  - text from several source works is composed into a single corpus.
+  - whitespace is normalised and presentation markup is removed; footnotes are
+    moved to a separate field; superscripts are written with a caret (10^25);
+    numbers marked as such are grouped by thousands, as the Official Journal
+    prints them;
+  - amendment markers are extracted into structured fields, and provisions that
+    the consolidated text marks as deleted are kept as identifiers without
+    text;
+  - the formulae of the preamble and the final part (place, date, signatures)
+    are not included;
+  - several source works are distributed together, one file per work and
+    language.
 
-No word of the normative text is altered, added or removed.
+Apart from these, no word of the provisions included is altered, added or
+removed.
 
 
 No legal value

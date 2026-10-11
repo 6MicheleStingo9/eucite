@@ -88,3 +88,9 @@ def test_data_licence_states_attribution_and_refuses_cc0() -> None:
     assert "CC BY 4.0" in text
     assert "Contains information from EUR-Lex" in text
     assert "CC0" in text and "NOT available" in text
+
+
+def test_the_packaged_data_licence_is_the_repository_one() -> None:
+    """The dataset ships the licence from inside the package: the two must not drift."""
+    packaged = ROOT / "src" / "eucite" / "data_licence.txt"
+    assert packaged.read_bytes() == (ROOT / "LICENSE-DATA").read_bytes()

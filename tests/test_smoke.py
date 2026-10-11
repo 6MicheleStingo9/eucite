@@ -29,7 +29,7 @@ def test_help_carries_the_disclaimer(capsys: pytest.CaptureFixture[str]) -> None
 
 
 # Subcommands implemented so far, each by the step that delivers it (S1, S7, S8).
-IMPLEMENTED = {"fetch"}
+IMPLEMENTED = {"fetch", "dump"}
 
 
 def test_parser_advertises_no_unimplemented_command() -> None:

@@ -31,8 +31,10 @@ from lxml import etree
 from eucite.cache import ObjectStore, SourceLock
 from eucite.corpus import load_document, locked_payload
 from eucite.crosscheck import crosscheck, xhtml_identifiers
+from eucite.dataset import build, read_nodes
 from eucite.formex import Element, FormexBundle, read_bundle
 from eucite.nodes import Document
+from eucite.parity import ParityError, compare, require_parity
 from eucite.sources import LANGUAGES, WORKS, Manifestation, SourceKey
 from tests.invariants import assert_composition, assert_tree
 
@@ -139,12 +141,27 @@ def test_every_amendment_marker_reaches_a_node() -> None:
         assert nodes == source
 
 
-def test_english_and_italian_have_the_same_structure() -> None:
-    """Anticipates S6: identifiers, types, parents and amendments coincide."""
-    for celex in (w.celex for w in WORKS):
-        en, it = (document(celex, lang) for lang in ("eng", "ita"))
-        shape = [(n.id, n.type, n.parent, n.amendments) for n in en.nodes]
-        assert shape == [(n.id, n.type, n.parent, n.amendments) for n in it.nodes]
+@pytest.mark.parametrize("celex", [w.celex for w in WORKS])
+def test_the_languages_are_in_parity(celex: str) -> None:
+    """S6: every node, in the same order, with the same structure (eucite.parity)."""
+    parity = compare([document(celex, lang) for lang in LANGUAGES])
+    assert parity.ok, [str(d) for d in parity.divergences[:5]]
+    assert parity.nodes == sum(COUNTS[celex].values())
+
+
+def test_a_divergence_introduced_in_the_real_corpus_fails() -> None:
+    """S6 definition of done: one Italian point removed, the check fails."""
+    english, italian = (document("02024R1689-20260727", lang) for lang in ("eng", "ita"))
+    removed = "32024R1689/art_3.subpara_1.point_14a"
+    altered = Document(
+        work=italian.work,
+        act=italian.act,
+        language=italian.language,
+        schema_location=italian.schema_location,
+        nodes=tuple(n for n in italian.nodes if n.id != removed),
+    )
+    with pytest.raises(ParityError, match="point_14a — presence differs"):
+        require_parity([english, altered])
 
 
 # -- no word lost --------------------------------------------------------------------
@@ -206,3 +223,21 @@ def test_no_word_is_lost_or_added(celex: str, lang: str) -> None:
     assert len(actual) == len(expected)
     for (node_id, words), source in zip(actual, expected, strict=True):
         assert words == source, node_id
+
+
+# -- the dataset (S7) ----------------------------------------------------------------
+
+
+def test_the_dataset_of_the_real_sources() -> None:
+    """Deterministic, every file reads back to the parsed nodes, the checks recorded."""
+    for celex, lang in SOURCES:
+        payload(celex, lang, Manifestation.XHTML)  # skips if absent
+    first, second = build(store=STORE, lock=LOCK), build(store=STORE, lock=LOCK)
+    assert first.files == second.files
+    for celex, lang in SOURCES:
+        assert read_nodes(first.files[f"{celex}.{lang}.jsonl"]) == document(celex, lang).nodes
+    checks = first.manifest["checks"]
+    assert sum(c["checked"] for c in checks["identifiers"]) == 2 * (842 + 162 + 58)
+    assert {p["work"]: p["nodes"] for p in checks["parity"]} == {
+        celex: sum(counts.values()) for celex, counts in COUNTS.items()
+    }

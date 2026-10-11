@@ -4,7 +4,7 @@
 
 **Citations to the EU AI Act, checked against the text in force — built on a versioned, traceable, machine-readable representation of Regulation (EU) 2024/1689, in Italian and English.**
 
-> **Status: pre-alpha.** The source format, the identifier scheme and the node model are settled ([ADR-0001](docs/adr/0001-source-format.md), [ADR-0002](docs/adr/0002-identifiers.md), [ADR-0012](docs/adr/0012-node-model.md)); the sources can be fetched and parsed in both languages. No corpus is published yet.
+> **Status: pre-alpha.** The corpus can be built: `eucite dump` writes the base act, the consolidated text and the Digital Omnibus as identified nodes in Italian and English, after checking every inherited identifier against EUR-Lex and the two languages against each other ([ADR-0012](docs/adr/0012-node-model.md), [ADR-0013](docs/adr/0013-dataset-format.md)). No dataset is published yet.
 
 ---
 
@@ -33,9 +33,11 @@ diff across amendments.
 
 A dataset, a thin library to read it, and a checker for citations to it.
 
-- **Every node carries its provenance** — source work, CELEX identifier, source
-  URL, retrieval time, checksums. You can always answer "where did this sentence
-  come from, and when did I fetch it".
+- **Every node can be traced to its source.** Each names the work and language
+  it was read from; the manifest of the dataset gives the URL, retrieval time
+  and checksums of every source. You can always answer "where did this sentence
+  come from, and when was it fetched" — and derive the dataset again from the
+  same sources, byte for byte.
 - **Every node declares how confident you may be in its identifier.** Identifiers
   down to paragraph level are *inherited* from the source and are verifiable
   against it. Subparagraphs and points are *derived* by this project's parser
@@ -126,6 +128,8 @@ uv run mypy
 
 uv run eucite fetch          # acquire the sources into cache/ and sources.lock.json
 uv run eucite fetch --frozen # restore exactly the locked sources, or fail
+uv run eucite dump           # check and write the dataset into dist-data/
+uv run eucite dump --check   # derive it again and compare with dist-data/
 ```
 
 `fetch` keeps every payload it has ever retrieved in a write-once cache and
