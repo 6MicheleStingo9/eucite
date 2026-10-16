@@ -15,12 +15,14 @@ from __future__ import annotations
 import re
 
 __all__ = [
+    "MULTIPLICATIVES",
     "LabelError",
     "annex_number",
     "annex_section",
     "article_number",
     "division_number",
     "identifier_number",
+    "label_value",
     "point_number",
 ]
 
@@ -65,6 +67,12 @@ def _value(value: str, label: str) -> str:
         # "ba" is one letter label, not "b" + "a"; only numbers take a suffix.
         return base + suffix
     return base + (_LETTER[mult] if mult else suffix or "")
+
+
+def label_value(value: str) -> str:
+    """Number of a bare label value, as a citation writes it: ``14 bis`` → ``14a``,
+    ``b ter`` → ``bb``, ``4a`` → ``4a``, ``iv`` → ``iv``, ``3.1`` → ``3-1``."""
+    return _value(_clean(value).lower(), value)
 
 
 def point_number(label: str) -> str:
